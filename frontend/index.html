@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Transaction Management System — Submit transactions, view user summaries, and track leaderboard rankings in real time." />
+    <title>TransactHub — Transaction Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --text-color: #f8fafc;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --secondary: #475569;
+            --secondary-hover: #334155;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+
+        .bg-orbs {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            background: radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15), transparent 25%),
+                        radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.15), transparent 25%);
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 800px;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        .app-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .app-header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .tagline {
+            color: #94a3b8;
+            margin-top: 0.5rem;
+        }
+
+        .tab-nav {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            background: var(--card-bg);
+            padding: 0.5rem;
+            border-radius: 1rem;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+        }
+
+        .tab-panel {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .card-title {
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header-row .card-title {
+            margin-bottom: 0;
+        }
+
+        .btn-icon {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1.25rem;
+            padding: 0.25rem;
+            transition: transform 0.2s;
+            color: var(--text-color);
+        }
+
+        .btn-icon:hover {
+            transform: rotate(45deg);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: #cbd5e1;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: var(--text-color);
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .field-hint {
+            display: block;
+            margin-top: 0.25rem;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: inherit;
+            transition: background 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: var(--secondary-hover);
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 0.75rem;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: var(--text-color);
+        }
+
+        .user-chips {
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .chip-label {
+            font-size: 0.9rem;
+            color: #cbd5e1;
+        }
+
+        .chip {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #93c5fd;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .chip:hover {
+            background: rgba(59, 130, 246, 0.4);
+        }
+
+        .result-area {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 0.5rem;
+            overflow-x: auto;
+        }
+
+        .result-area.hidden {
+            display: none;
+        }
+
+        .app-footer {
+            text-align: center;
+            margin-top: 3rem;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 600px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.full-width { grid-column: span 1; }
+            .tab-nav { flex-direction: column; }
+            .search-bar { flex-direction: column; }
+        }
+
+        /* Leaderboard Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .rank-badge {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            line-height: 24px;
+            text-align: center;
+            border-radius: 50%;
+            background: var(--secondary);
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+        .rank-1 { background: #fbbf24; color: #78350f; }
+        .rank-2 { background: #e2e8f0; color: #475569; }
+        .rank-3 { background: #b45309; color: #fffbeb; }
+    </style>
+</head>
+<body>
+    <!-- Animated Background Orbs -->
+    <div class="bg-orbs" aria-hidden="true"></div>
+
+    <!-- Main App Container -->
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <span class="logo-icon">⚡</span>
+                <h1>TransactHub</h1>
+            </div>
+            <p class="tagline">Real-time transaction management &amp; leaderboard</p>
+        </header>
+
+        <!-- Tab Navigation -->
+        <nav class="tab-nav" role="tablist" aria-label="Main navigation">
+            <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="panel-transaction" id="tab-transaction" data-tab="transaction">
+                <span class="tab-icon">💸</span>
+                <span class="tab-label">New Transaction</span>
+            </button>
+            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-summary" id="tab-summary" data-tab="summary">
+                <span class="tab-icon">📊</span>
+                <span class="tab-label">User Summary</span>
+            </button>
+            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-ranking" id="tab-ranking" data-tab="ranking">
+                <span class="tab-icon">🏆</span>
+                <span class="tab-label">Leaderboard</span>
+            </button>
+        </nav>
+
+        <!-- Panel: New Transaction -->
+        <section class="tab-panel active" id="panel-transaction" role="tabpanel" aria-labelledby="tab-transaction">
+            <div class="card glass-card">
+                <h2 class="card-title">Submit Transaction</h2>
+                <form id="transaction-form" novalidate>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="input-user-id">User ID</label>
+                            <input type="text" id="input-user-id" placeholder="e.g. alice_001" required maxlength="64" autocomplete="off" />
+                            <span class="field-hint">Alphanumeric, hyphens, underscores</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-type">Type</label>
+                            <select id="input-type" required>
+                                <option value="credit">Credit (+)</option>
+                                <option value="debit">Debit (−)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-amount">Amount</label>
+                            <input type="number" id="input-amount" placeholder="0.00" required min="0.01" max="1000000" step="0.01" />
+                            <span class="field-hint">Max ₹1,000,000 per transaction</span>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="input-desc">Description <span class="optional">(optional)</span></label>
+                            <input type="text" id="input-desc" placeholder="e.g. Monthly salary" maxlength="255" />
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="btn-submit-txn">
+                        <span class="btn-text">Submit Transaction</span>
+                    </button>
+                </form>
+
+                <!-- Result Area -->
+                <div id="txn-result" class="result-area hidden"></div>
+            </div>
+        </section>
+
+        <!-- Panel: User Summary -->
+        <section class="tab-panel" id="panel-summary" role="tabpanel" aria-labelledby="tab-summary">
+            <div class="card glass-card">
+                <h2 class="card-title">User Summary</h2>
+                <div class="search-bar">
+                    <input type="text" id="input-lookup-user" placeholder="Enter User ID (e.g. alice_001)" maxlength="64" />
+                    <button class="btn btn-secondary" id="btn-lookup">
+                        <span class="btn-text">Look Up</span>
+                    </button>
+                </div>
+
+                <!-- Quick-access user chips for seeded users -->
+                <div class="user-chips" id="user-chips">
+                    <span class="chip-label">Quick access:</span>
+                    <button class="chip" data-user="alice_001">alice_001</button>
+                    <button class="chip" data-user="bob_0002">bob_0002</button>
+                    <button class="chip" data-user="carol_003">carol_003</button>
+                    <button class="chip" data-user="dave_0004">dave_0004</button>
+                    <button class="chip" data-user="eve_00005">eve_00005</button>
+                </div>
+
+                <div id="summary-result" class="result-area hidden"></div>
+            </div>
+        </section>
+
+        <!-- Panel: Leaderboard -->
+        <section class="tab-panel" id="panel-ranking" role="tabpanel" aria-labelledby="tab-ranking">
+            <div class="card glass-card">
+                <div class="card-header-row">
+                    <h2 class="card-title">Leaderboard</h2>
+                    <button class="btn btn-icon" id="btn-refresh-ranking" title="Refresh rankings">
+                        🔄
+                    </button>
+                </div>
+                <div id="ranking-result" class="result-area">
+                    <div style="padding: 1rem;">Loading leaderboard...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>TransactHub &mdash; Backend API Demo &middot; Django + DRF &middot; SQLite</p>
+        </footer>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        const API_BASE = "http://localhost:8000/api";
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // Tab Switching logic
+            const tabBtns = document.querySelectorAll(".tab-btn");
+            const tabPanels = document.querySelectorAll(".tab-panel");
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener("click", () => {
+                    tabBtns.forEach(b => b.classList.remove("active"));
+                    tabPanels.forEach(p => p.classList.remove("active"));
+                    
+                    btn.classList.add("active");
+                    document.getElementById(`panel-${btn.dataset.tab}`).classList.add("active");
+
+                    // Auto-load leaderboard when tab is clicked
+                    if (btn.dataset.tab === "ranking") {
+                        fetchLeaderboard();
+                    }
+                });
+            });
+
+            // Handle Transaction Submission
+            const txnForm = document.getElementById("transaction-form");
+            const txnResult = document.getElementById("txn-result");
+
+            txnForm.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                
+                // auto-generate idempotency key so users don't have to
+                const idemKey = crypto.randomUUID();
+
+                const payload = {
+                    user_id: document.getElementById("input-user-id").value,
+                    idempotency_key: idemKey,
+                    transaction_type: document.getElementById("input-type").value,
+                    amount: document.getElementById("input-amount").value,
+                    descriptions: document.getElementById("input-desc").value
+                };
+
+                try {
+                    const res = await fetch(`${API_BASE}/transaction/`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await res.json();
+                    
+                    txnResult.classList.remove("hidden");
+                    if (res.ok) {
+                        txnResult.innerHTML = `<div style="color: #10b981; margin-bottom: 10px;">✅ Transaction Successful (Status: ${data.status})</div><pre>${JSON.stringify(data.transaction, null, 2)}</pre>`;
+                    } else {
+                        txnResult.innerHTML = `<div style="color: #ef4444; margin-bottom: 10px;">❌ Error: ${data.message || 'Validation failed'}</div><pre>${JSON.stringify(data.details || data, null, 2)}</pre>`;
+                    }
+                } catch (err) {
+                    txnResult.classList.remove("hidden");
+                    txnResult.innerHTML = `<div style="color: #ef4444;">❌ Network Error: Could not connect to API. Is the server running?</div>`;
+                }
+            });
+
+            // Handle User Summary Lookup
+            const btnLookup = document.getElementById("btn-lookup");
+            const inputLookup = document.getElementById("input-lookup-user");
+            const summaryResult = document.getElementById("summary-result");
+
+            const fetchSummary = async (userId) => {
+                if (!userId) return;
+                inputLookup.value = userId;
+                summaryResult.classList.remove("hidden");
+                summaryResult.innerHTML = 'Loading...';
+                
+                try {
+                    const res = await fetch(`${API_BASE}/summary/${userId}/`);
+                    const data = await res.json();
+                    
+                    if (res.ok) {
+                        summaryResult.innerHTML = `
+                            <h3 style="margin-top: 0;">${data.user_name} (${data.user_id})</h3>
+                            <div style="display: flex; gap: 2rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                                <div>
+                                    <div style="font-size: 0.8rem; color: #94a3b8;">Rank</div>
+                                    <div style="font-size: 1.25rem; font-weight: bold;">#${data.rank} <span style="font-size: 0.85rem; color: #94a3b8;">of ${data.total_users}</span></div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.8rem; color: #94a3b8;">Net Balance</div>
+                                    <div style="font-size: 1.25rem; font-weight: bold;">₹${data.net_balance}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.8rem; color: #94a3b8;">Rank Score</div>
+                                    <div style="font-size: 1.25rem; font-weight: bold;">${data.rank_score}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.8rem; color: #94a3b8;">Transactions</div>
+                                    <div style="font-size: 1.25rem; font-weight: bold;">${data.transaction_count}</div>
+                                </div>
+                            </div>
+                            <h4 style="margin-bottom: 0.5rem; color: #cbd5e1;">Recent Transactions</h4>
+                            <pre style="background: rgba(15, 23, 42, 0.5); padding: 1rem; border-radius: 0.5rem;">${JSON.stringify(data.recent_transactions, null, 2)}</pre>
+                        `;
+                    } else {
+                        summaryResult.innerHTML = `<div style="color: #ef4444;">❌ ${data.message || 'User not found'}</div>`;
+                    }
+                } catch (err) {
+                    summaryResult.innerHTML = `<div style="color: #ef4444;">❌ Network Error: Could not connect to API</div>`;
+                }
+            };
+
+            btnLookup.addEventListener("click", () => fetchSummary(inputLookup.value));
+
+            // Listen for enter key on lookup input
+            inputLookup.addEventListener("keypress", (e) => {
+                if (e.key === 'Enter') {
+                    fetchSummary(inputLookup.value);
+                }
+            });
+
+            // Handle Quick access chips
+            document.querySelectorAll(".chip").forEach(chip => {
+                chip.addEventListener("click", () => fetchSummary(chip.dataset.user));
+            });
+
+            // Handle Leaderboard Loading
+            const btnRefreshRanking = document.getElementById("btn-refresh-ranking");
+            const rankingResult = document.getElementById("ranking-result");
+
+            const fetchLeaderboard = async () => {
+                rankingResult.innerHTML = '<div style="padding: 1rem;">Loading leaderboard...</div>';
+                try {
+                    const res = await fetch(`${API_BASE}/ranking/`);
+                    const data = await res.json();
+                    
+                    if (res.ok) {
+                        if (data.ranking.length === 0) {
+                            rankingResult.innerHTML = '<div style="padding: 1rem;">No users found. Try adding some transactions.</div>';
+                            return;
+                        }
+
+                        let html = `<table>
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>User</th>
+                                    <th>Balance</th>
+                                    <th>Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+                        
+                        data.ranking.forEach(user => {
+                            let badgeClass = user.rank <= 3 ? `rank-${user.rank}` : '';
+                            html += `
+                                <tr>
+                                    <td><span class="rank-badge ${badgeClass}">${user.rank}</span></td>
+                                    <td>
+                                        <strong>${user.user_name}</strong><br>
+                                        <small style="color: #94a3b8;">${user.user_id}</small>
+                                    </td>
+                                    <td>₹${user.net_balance}</td>
+                                    <td>${user.rank_score}</td>
+                                </tr>
+                            `;
+                        });
+                        
+                        html += `</tbody></table>`;
+                        rankingResult.innerHTML = html;
+                    } else {
+                        rankingResult.innerHTML = `<div style="color: #ef4444; padding: 1rem;">❌ Error loading leaderboard</div>`;
+                    }
+                } catch (err) {
+                    rankingResult.innerHTML = `<div style="color: #ef4444; padding: 1rem;">❌ Network Error: Could not connect to API</div>`;
+                }
+            };
+
+            btnRefreshRanking.addEventListener("click", fetchLeaderboard);
+            
+            // Load leaderboard initially if the tab is already active
+            if (document.getElementById("tab-ranking").classList.contains("active")) {
+                fetchLeaderboard();
+            }
+        });
+    </script>
+</body>
+</html>
